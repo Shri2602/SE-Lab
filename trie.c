@@ -62,7 +62,34 @@ void tmp_rewind(char *end) {
     tmp_size = end - tmp;
 }
 
+const char *shell_escape(const char *str) {
+    if (str == NULL) {
+        return "''";
+    }
 
+    if (is_safe_str(str)) {
+        return str;
+    }
+
+    char *result = tmp_end();
+
+    tmp_append_cstr("'");
+    while (str) {
+        char *end = strchr(str, '\'');
+        if (end) {
+            tmp_append_sized(str, end - str);
+            tmp_append_cstr("'\"'\"'");
+            str = end + 1;
+        } else {
+            tmp_append_cstr(str);
+            str = NULL;
+        }
+    }
+    tmp_append_cstr("'");
+    tmp_append_sized("", 1);
+
+    return result;
+}
 
 void insert_text(Node *root, const char *text) {
     assert(root != NULL);
