@@ -15,6 +15,8 @@
 #define ARRAY_LEN(xs) (sizeof(xs) / sizeof((xs)[0]))
 #define TMP_CAP (8 * 1024)
 
+#define AC_BUFFER_CAP 1024
+
 typedef struct Node Node;
 
 struct Node {
@@ -108,25 +110,37 @@ void insert_text(Node *root, const char *text) {
     insert_text(root->children[index], text + 1);
 }
 
+void ac_buffer_pop(void) {
+    assert(ac_buffer_sz > 0);
+    ac_buffer_sz--;
+}
+
 void usage(FILE *sink, const char *program) {
     fprintf(sink, "Usage: %s <SUBCOMMAND>\n", program);
     fprintf(sink, "SUBCOMMANDS:\n");
     fprintf(sink, "    complete <prefix>  Suggest prefix autocompletion based on the Trie.\n");
 }
 
-#define AC_BUFFER_CAP 1024
 char ac_buffer[AC_BUFFER_CAP];
 size_t ac_buffer_sz = 0;
+
+void echo_cmd(char **argv) {
+    char *end = tmp_end();
+    printf("[CMD]");
+    for (; *argv != NULL; argv++) {
+        printf(" ");
+        printf("%s", shell_escape(*argv));
+    }
+    printf("\n");
+    tmp_rewind(end);
+}
 
 void ac_buffer_push(char ch) {
     assert(ac_buffer_sz < AC_BUFFER_CAP);
     ac_buffer[ac_buffer_sz++] = ch;
 }
 
-void ac_buffer_pop(void) {
-    assert(ac_buffer_sz > 0);
-    ac_buffer_sz--;
-}
+
 
 Node *find_prefix(Node *root, const char *prefix) {
     if (prefix == NULL || *prefix == '\0') {
