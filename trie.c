@@ -5,14 +5,15 @@
 #include <string.h>
 #include <errno.h>
 #include <ctype.h>
-
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
 #include "fruits.h"
 
+
+
 #define ARRAY_LEN(xs) (sizeof(xs) / sizeof((xs)[0]))
+#define TMP_CAP (8 * 1024)
 
 typedef struct Node Node;
 
@@ -30,6 +31,38 @@ Node *alloc_node(void) {
     assert(node_pool_count < NODE_POOL_CAP);
     return &node_pool[node_pool_count++];
 }
+
+char tmp[TMP_CAP] = {0};
+size_t tmp_size = 0;
+char *tmp_end(void) {
+    return tmp + tmp_size;
+}
+
+char *tmp_alloc(size_t size) {
+    assert(tmp_size + size <= TMP_CAP);
+    char *result = tmp_end();
+    tmp_size += size;
+    return result;
+}
+
+char *tmp_append_sized(const char *buffer, size_t buffer_sz) {
+    char *result = tmp_alloc(buffer_sz);
+    return memcpy(result, buffer, buffer_sz);
+}
+
+char *tmp_append_cstr(const char *cstr) {
+    return tmp_append_sized(cstr, strlen(cstr));
+}
+
+void tmp_clean() {
+    tmp_size = 0;
+}
+
+void tmp_rewind(char *end) {
+    tmp_size = end - tmp;
+}
+
+
 
 void insert_text(Node *root, const char *text) {
     assert(root != NULL);
