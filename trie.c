@@ -142,19 +142,6 @@ void ac_buffer_push(char ch) {
 
 
 
-Node *find_prefix(Node *root, const char *prefix) {
-    if (prefix == NULL || *prefix == '\0') {
-        return root;
-    }
-
-    if (root == NULL) {
-        return NULL;
-    }
-
-    ac_buffer_push(*prefix);
-    return find_prefix(root->children[(size_t)*prefix], prefix + 1);
-}
-
 void print_autocompletion(FILE *sink, Node *root) {
     if (root) {
         if (root->end) {
@@ -172,6 +159,18 @@ void print_autocompletion(FILE *sink, Node *root) {
     }
 }
 
+Node *find_prefix(Node *root, const char *prefix) {
+    if (prefix == NULL || *prefix == '\0') {
+        return root;
+    }
+
+    if (root == NULL) {
+        return NULL;
+    }
+
+    ac_buffer_push(*prefix);
+    return find_prefix(root->children[(size_t)*prefix], prefix + 1);
+}
 int main(int argc, char **argv) {
     const char *program = *argv++;
 
